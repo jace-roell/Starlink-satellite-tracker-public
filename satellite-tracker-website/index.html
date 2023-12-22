@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/FP_Satellite_icon.svg/1200px-FP_Satellite_icon.svg.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visible Satellites</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+      }
+
+      #sidebar {
+        width: 400px;
+        height: 100%;
+        background-color: #333;
+        position: fixed;
+        overflow: hidden;
+        padding: 20px;
+        color: #fff;
+      }
+
+      #sidebar .satellite-icon {
+        font-size: 30px;
+        margin: 0 0 20px 0;
+      }
+
+      #main {
+        margin-left: 270px;
+        padding: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        font-weight: bold;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      select {
+        width: 100%;
+        max-width: 200px;
+        padding: 10px;
+        margin-top: 5px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #fff;
+      }
+
+      .date-picker {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .date-picker input {
+        margin: 5px 0;
+        max-width: 150px;
+      }
+
+      .search-button {
+        background-color: #28a745; /* Green background color */
+        color: #fff; /* White text color */
+        padding: 10px 20px; /* Padding for the button */
+        border: none; /* Remove button border */
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .ui-style {
+        border: 2px solid #333;
+        border-radius: 8px;
+        margin: 10px;
+        padding: 15px;
+        background-color: #f0f0f0;
+      }
+      .navbar {
+        overflow: hidden;
+        background-color: #28a745;
+        border-radius: 20px;
+      }
+
+      .navbar a {
+        float: left;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 5px 10px;
+        text-decoration: none;
+        width: 150px;
+        font-size: 20px;
+      }
+      
+      .navbar a:hover {
+        background-color: #ddd;
+        color: black;
+        border-radius: 15px;
+      }
+      
+      .navbar a.active {
+        background-color: #04AA6D;
+        color: white;
+      }
+
+      title-container {
+        display: flex;
+        flex-direction: row;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sidebar">
+      <div class="title-container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/FP_Satellite_icon.svg/1200px-FP_Satellite_icon.svg.png" style="width: 100px; float: left; margin-left: 10px; margin-right: 40px" >
+        <h1 class="title">Visible Satellites</h1>
+      </div>
+
+      <br />
+      <div class="navbar">
+        <a href="/">Home</a>
+        <a href="/faq">FAQs</a>
+      </div>
+      <br />
+      
+      <div class="form-group">
+        <label for="location"><h3>Location (State,City or Zip)</h3></label>
+        <input type="text" id="location" placeholder="Enter location" />
+      </div>
+
+      <div class="form-group">
+        <label><h3>Days of Forecast</h3></label>
+        <div class="date-picker">
+          <input type="number" id="days" step="1" value="10" min="1" max="10">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label><h3>Options</h3></label>
+        <div class="checkbox-group">
+          <label for="option1">
+            <input
+              type="checkbox"
+              id="option1"
+              name="options"
+              value="option1"
+              checked="true"
+            />
+            Show All
+          </label>
+          <label for="option2">
+            <input
+              type="checkbox"
+              id="option2"
+              name="options"
+              value="option2"
+              checked="true"
+              disabled="true"
+            />
+            Only Sunrise Passes
+          </label>
+          <label for="option3">
+            <input
+              type="checkbox"
+              id="option3"
+              name="options"
+              value="option3"
+              checked="true"
+              disabled="true"
+            />
+            Only Sunset Passes
+          </label>
+        </div>
+      </div>
+
+      <button id="search" class="search-button">Search</button>
+      <!-- Map image & Compass image tags-->
+      <div style="margin-top: 30px">
+        <img id="mapIMG" src=""  >
+        <img id="compassIMG" src="" >
+      </div>
+      <!-- Added the "Search" button -->
+    </div>
+
+      <!-- Component to create the UI cards -->
+      <div id="root">
+        <script type="module" src="/src/main.jsx"></script>
+      </div>
+
+    </div>
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=ENTER-KEY
+      "
+    ></script>
+    <script>
+      $(function () {
+        // Initialize date pickers
+        $("#start-date, #end-date").datepicker();
+      });
+      
+    function formatDate(dateString, fromOrTo) {
+      const date = new Date(dateString);
+    
+      // Set time based on fromOrTo parameter
+      if (fromOrTo === 'from') {
+        date.setHours(0, 0, 0, 0); // Set to midnight
+      } else if (fromOrTo === 'to') {
+        date.setHours(23, 59, 59, 999); // Set to 11:59:59.999
+      }
+    
+      const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      };
+    
+      return date.toLocaleDateString('en-US', options);
+    }
+
+      // Replace 'YOUR_API_KEY' with your actual API ke
+      const apiKey = "ENTER-KEY";
+
+      // Checkbox logic
+      // Checkbox #1
+      const opt1 = document.getElementById("option1");
+      opt1.addEventListener("change", function () {
+        if (opt1.checked) {
+          localStorage.setItem("opt1", true);
+          option2.disabled = true;
+          option3.disabled = true;
+        } else {
+          localStorage.setItem("opt1", false);
+          option2.disabled = false;
+          option3.disabled = false;
+        }
+      });
+      // Checkbox #2
+      const opt2 = document.getElementById("option2");
+      opt2.addEventListener("change", function () {
+        if (opt2.checked) {
+          localStorage.setItem("opt2", true);
+        } else {
+          localStorage.setItem("opt2", false);
+        }
+      });
+      // Checkbox #3
+      const opt3 = document.getElementById("option3");
+      opt3.addEventListener("change", function () {
+        if(opt3.checked) {
+          localStorage.setItem("opt3", true);
+        } else {
+          localStorage.setItem("opt3", false);
+        }
+      });
+        
+      const element = document.getElementById("search");
+      element.addEventListener("click", function () {
+
+        // Create a geocoder object
+        const geocoder = new google.maps.Geocoder();
+
+        // Define the location (city, state, or ZIP code) you want to geocode
+        const location = document.getElementById("location").value; // Assuming it's an input element
+
+        // Use the geocoder to convert the location to coordinates
+        geocoder.geocode({ address: location }, (results, status) => {
+          if (status === "OK") {
+            var latitude = results[0].geometry.location.lat();
+            var longitude = results[0].geometry.location.lng();
+            var days = document.getElementById("days").value;
+
+            // Call backend with latitide/longitude data
+            var backendURL = 'http://localhost:7000/backend?latitude='+latitude+'&longitude='+longitude+'&days='+days
+            fetch(backendURL, {
+              mode:"no-cors",              
+            });
+            
+            // Creates Map static image with compass
+            let mapIMG = document.getElementById("mapIMG");
+            mapIMG.src = "https://maps.googleapis.com/maps/api/staticmap?center="+latitude+","+longitude+"&zoom=15&size=640x640&key=ENTER-KEY&maptype=satellite&&markers="+latitude+","+longitude
+            mapIMG.style = "width: 365px"
+            let compassIMG = document.getElementById("compassIMG");
+            //compassIMG.src = "https://upload.wikimedia.org/wikipedia/commons/6/61/Compass_rose_transparent.png"
+            compassIMG.src = "https://i.imgur.com/gvay3fH.png"
+            compassIMG.style = "position: absolute;  left: 25px; width: 120px; top: 720px"
+
+            //console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+          } else {
+            window.alert("Search Failed, try a different location")
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
